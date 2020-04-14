@@ -19,7 +19,7 @@ import json_tricks as json
 import numpy as np
 
 from dataset.JointsDataset import JointsDataset
-from nms.nms import oks_nms
+from nms.nms import oks_nms #Object Keypoint Similarity in Non-max supression
 from nms.nms import soft_oks_nms
 
 
@@ -87,17 +87,16 @@ class COCODataset(JointsDataset):
         self.num_images = len(self.image_set_index)
         logger.info('=> num_images: {}'.format(self.num_images))
 
-        self.num_joints = 17
+        self.num_joints = 11
         self.flip_pairs = [[1, 2], [3, 4], [5, 6], [7, 8],
-                           [9, 10], [11, 12], [13, 14], [15, 16]]
+                           [9, 10]]
         self.parent_ids = None
-        self.upper_body_ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        self.lower_body_ids = (11, 12, 13, 14, 15, 16)
+        self.upper_body_ids = (0, 1, 2, 3, 8, 9, 10)
+        self.lower_body_ids = ( 4, 5, 6, 7)
 
         self.joints_weight = np.array(
             [
-                1., 1., 1., 1., 1., 1., 1., 1.2, 1.2,
-                1.5, 1.5, 1., 1., 1.2, 1.2, 1.5, 1.5
+                1., 1., 1., 1., 1., 1., 1., 1.,1.2, 1.2, 1.2                
             ],
             dtype=np.float32
         ).reshape((self.num_joints, 1))
@@ -110,13 +109,12 @@ class COCODataset(JointsDataset):
         logger.info('=> load {} samples'.format(len(self.db)))
 
     def _get_ann_file_keypoint(self):
-        """ self.root / annotations / person_keypoints_train2017.json """
-        prefix = 'person_keypoints' \
-            if 'test' not in self.image_set else 'image_info'
+        """ self.root / data / images / train.json """
+        prefix = 'train' \
+            if 'val' not in self.image_set else 'val'
         return os.path.join(
             self.root,
-            'annotations',
-            prefix + '_' + self.image_set + '.json'
+            prefix  + '.json'
         )
 
     def _load_image_set_index(self):
@@ -125,12 +123,13 @@ class COCODataset(JointsDataset):
         return image_ids
 
     def _get_db(self):
-        if self.is_train or self.use_gt_bbox:
+        #if self.is_train or self.use_gt_bbox:
             # use ground truth bbox
-            gt_db = self._load_coco_keypoint_annotations()
-        else:
+            #gt_db = self._load_coco_keypoint_annotations()
+        #else:
             # use bbox from detection
-            gt_db = self._load_coco_person_detection_results()
+            #gt_db = self._load_coco_person_detection_results()
+        gt_db = self._load_coco_keypoint_annotations()
         return gt_db
 
     def _load_coco_keypoint_annotations(self):
@@ -230,16 +229,16 @@ class COCODataset(JointsDataset):
 
     def image_path_from_index(self, index):
         """ example: images / train2017 / 000000119993.jpg """
-        file_name = '%012d.jpg' % index
+        file_name = 'img'+ format(index,'06d')+'.jpg'
         if '2014' in self.image_set:
             file_name = 'COCO_%s_' % self.image_set + file_name
 
-        prefix = 'test2017' if 'test' in self.image_set else self.image_set
+        prefix = 'val' if 'val' in self.image_set else self.image_set
 
         data_name = prefix + '.zip@' if self.data_format == 'zip' else prefix
 
         image_path = os.path.join(
-            self.root, 'images', data_name, file_name)
+            self.root, data_name, file_name)
 
         return image_path
 
@@ -311,7 +310,7 @@ class COCODataset(JointsDataset):
                 'scale': all_boxes[idx][2:4],
                 'area': all_boxes[idx][4],
                 'score': all_boxes[idx][5],
-                'image': int(img_path[idx][-16:-4])
+                'image': int(img_path[idx][-10:-4])
             })
         # image x person x (keypoints)
         kpts = defaultdict(list)
@@ -357,7 +356,7 @@ class COCODataset(JointsDataset):
 
         self._write_coco_keypoint_results(
             oks_nmsed_kpts, res_file)
-        if 'test' not in self.image_set:
+        if 'val' not in self.image_set:
             info_str = self._do_python_keypoint_eval(
                 res_file, res_folder)
             name_value = OrderedDict(info_str)

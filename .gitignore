@@ -93,3 +93,4 @@ external/
 draws/
 plot/
 
+lib/dataset/coco_copy.py

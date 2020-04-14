@@ -20,6 +20,9 @@ from core.inference import get_final_preds
 from utils.transforms import flip_back
 from utils.vis import save_debug_images
 
+# ---- Added all heatmap save util function ---- 28/02
+from sat_pose_utils.utils import save_all_val_heatmaps
+
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +181,9 @@ def validate(config, val_loader, val_dataset, model, criterion, output_dir,
             image_path.extend(meta['image'])
 
             idx += num_images
-
+            # ----------------Save all heatmaps from test/val : 28/02 -----
+            save_all_val_heatmaps(config, input, meta, target, pred*4, output,output_dir)
+            
             if i % config.PRINT_FREQ == 0:
                 msg = 'Test: [{0}/{1}]\t' \
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
