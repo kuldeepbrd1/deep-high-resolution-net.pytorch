@@ -23,7 +23,7 @@ Modifications are done on python 3.7.
 - added sat_pose_utils and support for individual heatmap extraction in lib.
 
 ## Custom Satellite Dataset
-See convertCOCO/convert2COCO.py helper file to convert your dataset to COCO format
+See COCOconvert/convert2COCO.py helper file to convert your dataset to COCO format
 *Pre-requisite*: Keypoints data in json format is needed with entries as exemplified below:
 ```
 {
