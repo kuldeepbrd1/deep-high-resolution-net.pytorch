@@ -1,4 +1,6 @@
-# Deep High-Resolution Representation Learning for Human Pose Estimation (CVPR 2019)
+# Deep High-Resolution Representation Learning for Satellite Pose Estimation 
+
+
 ## News
 - [2020/02/01] We have added demo code for HRNet. Thanks [Alex Simes](https://github.com/alex9311). 
 - Visualization code for showing the pose estimation results. Thanks Depu!
@@ -7,12 +9,12 @@
 - Our new work [High-Resolution Representations for Labeling Pixels and Regions](https://arxiv.org/abs/1904.04514) is available at [HRNet](https://github.com/HRNet). Our HRNet has been applied to a wide range of vision tasks, such as [image classification](https://github.com/HRNet/HRNet-Image-Classification), [objection detection](https://github.com/HRNet/HRNet-Object-Detection), [semantic segmentation](https://github.com/HRNet/HRNet-Semantic-Segmentation) and [facial landmark](https://github.com/HRNet/HRNet-Facial-Landmark-Detection).
 
 ## Introduction
-This is an official pytorch implementation of [*Deep High-Resolution Representation Learning for Human Pose Estimation*](https://arxiv.org/abs/1902.09212). 
-In this work, we are interested in the human pose estimation problem with a focus on learning reliable high-resolution representations. Most existing methods **recover high-resolution representations from low-resolution representations** produced by a high-to-low resolution network. Instead, our proposed network **maintains high-resolution representations** through the whole process.
+This is an unofficial pytorch implementation of [*Deep High-Resolution Representation Learning for Human Pose Estimation*](https://arxiv.org/abs/1902.09212) modified for use in satellite pose estimation. 
+In this work, we are interested in the satellite pose estimation problem with a focus on learning reliable high-resolution representations. Most existing methods **recover high-resolution representations from low-resolution representations** produced by a high-to-low resolution network. Instead, our proposed network **maintains high-resolution representations** through the whole process.
 We start from a high-resolution subnetwork as the first stage, gradually add high-to-low resolution subnetworks one by one to form more stages, and connect the mutli-resolution subnetworks **in parallel**. We conduct **repeated multi-scale fusions** such that each of the high-to-low resolution representations receives information from other parallel representations over and over, leading to rich high-resolution representations. As a result, the predicted keypoint heatmap is potentially more accurate and spatially more precise. We empirically demonstrate the effectiveness of our network through the superior pose estimation results over two benchmark datasets: the COCO keypoint detection dataset and the MPII Human Pose dataset. </br>
 
 ![Illustrating the architecture of the proposed HRNet](/figures/hrnet.png)
-## Main Results
+## Main Results on Human Pose Estimation
 ### Results on MPII val
 | Arch               | Head | Shoulder | Elbow | Wrist |  Hip | Knee | Ankle | Mean | Mean@0.1 |
 |--------------------|------|----------|-------|-------|------|------|-------|------|----------|
@@ -20,11 +22,6 @@ We start from a high-resolution subnetwork as the first stage, gradually add hig
 | pose_resnet_101    | 96.9 |     95.9 |  89.5 |  84.4 | 88.4 | 84.5 |  80.7 | 89.1 |     34.0 |
 | pose_resnet_152    | 97.0 |     95.9 |  90.0 |  85.0 | 89.2 | 85.3 |  81.3 | 89.6 |     35.0 |
 | **pose_hrnet_w32** | 97.1 |     95.9 |  90.3 |  86.4 | 89.1 | 87.1 |  83.3 | 90.3 |     37.7 |
-
-### Note:
-- Flip test is used.
-- Input size is 256x256
-- pose_resnet_[50,101,152] is our previous work of [*Simple Baselines for Human Pose Estimation and Tracking*](http://openaccess.thecvf.com/content_ECCV_2018/html/Bin_Xiao_Simple_Baselines_for_ECCV_2018_paper.html)
 
 ### Results on COCO val2017 with detector having human AP of 56.4 on COCO val2017 dataset
 | Arch               | Input size | #Params | GFLOPs |    AP | Ap .5 | AP .75 | AP (M) | AP (L) |    AR | AR .5 | AR .75 | AR (M) | AR (L) |
@@ -40,13 +37,6 @@ We start from a high-resolution subnetwork as the first stage, gradually add hig
 | **pose_hrnet_w48** |    256x192 | 63.6M   |   14.6 | 0.751 | 0.906 |  0.822 |  0.715 |  0.818 | 0.804 | 0.943 |  0.867 |  0.762 |  0.864 |
 | **pose_hrnet_w48** |    384x288 | 63.6M   |   32.9 | 0.763 | 0.908 |  0.829 |  0.723 |  0.834 | 0.812 | 0.942 |  0.871 |  0.767 |  0.876 |
 
-### Note:
-- Flip test is used.
-- Person detector has person AP of 56.4 on COCO val2017 dataset.
-- pose_resnet_[50,101,152] is our previous work of [*Simple Baselines for Human Pose Estimation and Tracking*](http://openaccess.thecvf.com/content_ECCV_2018/html/Bin_Xiao_Simple_Baselines_for_ECCV_2018_paper.html).
-- GFLOPs is for convolution and linear layers only.
-
-
 ### Results on COCO test-dev2017 with detector having human AP of 60.9 on COCO test-dev2017 dataset
 | Arch               | Input size | #Params | GFLOPs |    AP | Ap .5 | AP .75 | AP (M) | AP (L) |    AR | AR .5 | AR .75 | AR (M) | AR (L) |
 |--------------------|------------|---------|--------|-------|-------|--------|--------|--------|-------|-------|--------|--------|--------|
@@ -54,15 +44,39 @@ We start from a high-resolution subnetwork as the first stage, gradually add hig
 | **pose_hrnet_w48** |    384x288 | 63.6M   |   32.9 | 0.755 | 0.925 |  0.833 |  0.719 |  0.815 | 0.805 | 0.957 |  0.874 |  0.763 |  0.863 |
 | **pose_hrnet_w48\*** |    384x288 | 63.6M   |   32.9 | 0.770 | 0.927 |  0.845 |  0.734 |  0.831 | 0.820 | 0.960 |  0.886 |  0.778 |  0.877 |
 
-### Note:
-- Flip test is used.
-- Person detector has person AP of 60.9 on COCO test-dev2017 dataset.
-- pose_resnet_152 is our previous work of [*Simple Baselines for Human Pose Estimation and Tracking*](http://openaccess.thecvf.com/content_ECCV_2018/html/Bin_Xiao_Simple_Baselines_for_ECCV_2018_paper.html).
-- GFLOPs is for convolution and linear layers only.
-- pose_hrnet_w48\* means using additional data from [AI challenger](https://challenger.ai/dataset/keypoint) for training.
 
 ## Environment
 The code is developed using python 3.6 on Ubuntu 16.04. NVIDIA GPUs are needed. The code is developed and tested using 4 NVIDIA P100 GPU cards. Other platforms or GPU cards are not fully tested.
+
+## Modifications
+Modifications are done on python 3.7.
+- added sat_pose_utils and support for individual heatmap extraction in lib.
+
+## Custom Satellite Dataset
+See convertCOCO/convert2COCO.py helper file to convert your dataset to COCO format
+*Pre-requisite*: Keypoints data in json format is needed with entries as exemplified below:
+```
+{
+ "filename": "img000001.jpg",
+  "label": [
+    528.0346656688332,  #x_min
+    1044.6715379268423, #x_max
+    212.71890770023893, #y_min
+    710.3861548830496   #y_max
+  ],
+  "features": [
+    {
+      "ID": 0,
+      "Coordinates": [
+        899.5854718289856,  #x_kp
+        284.16418644044336  #y_kp
+      ],
+      "Visibility": 1
+    },
+    ... # n feature dicts
+    ]
+}
+```
 
 ## Quick start
 ### Installation
