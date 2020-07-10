@@ -13,7 +13,7 @@ import math
 import numpy as np
 
 from utils.transforms import transform_preds
-
+import json
 
 def get_max_preds(batch_heatmaps):
     '''
@@ -27,10 +27,14 @@ def get_max_preds(batch_heatmaps):
     batch_size = batch_heatmaps.shape[0]
     num_joints = batch_heatmaps.shape[1]
     width = batch_heatmaps.shape[3]
+    #print(f"Batch Heatmaps: {batch_heatmaps.shape}")
     heatmaps_reshaped = batch_heatmaps.reshape((batch_size, num_joints, -1))
+    #print(f"Reshaped Heatmaps: {heatmaps_reshaped.shape}")
     idx = np.argmax(heatmaps_reshaped, 2)
     maxvals = np.amax(heatmaps_reshaped, 2)
-
+    Mv_g_1 = [i for i in maxvals.flatten() if i > 1]
+    Max_mv = max(Mv_g_1) if Mv_g_1 else 1
+    #print(f"Maxvals >1: {Mv_g_1}, len:{len(Mv_g_1)}, max: {Max_mv} ")
     maxvals = maxvals.reshape((batch_size, num_joints, 1))
     idx = idx.reshape((batch_size, num_joints, 1))
 
@@ -48,7 +52,8 @@ def get_max_preds(batch_heatmaps):
 
 def get_final_preds(config, batch_heatmaps, center, scale):
     coords, maxvals = get_max_preds(batch_heatmaps)
-
+    # with open('pred.json','w') as jf:
+    #     json.dump({'pred':coords.tolist(), 'maxvals':maxvals.tolist()},jf,indent=4)
     heatmap_height = batch_heatmaps.shape[2]
     heatmap_width = batch_heatmaps.shape[3]
 
@@ -77,3 +82,5 @@ def get_final_preds(config, batch_heatmaps, center, scale):
         )
 
     return preds, maxvals
+
+

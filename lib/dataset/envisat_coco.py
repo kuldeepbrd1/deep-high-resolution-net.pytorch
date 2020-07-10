@@ -27,30 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class COCODataset(JointsDataset):
-    '''
-    "keypoints": {
-        0: "nose",
-        1: "left_eye",
-        2: "right_eye",
-        3: "left_ear",
-        4: "right_ear",
-        5: "left_shoulder",
-        6: "right_shoulder",
-        7: "left_elbow",
-        8: "right_elbow",
-        9: "left_wrist",
-        10: "right_wrist",
-        11: "left_hip",
-        12: "right_hip",
-        13: "left_knee",
-        14: "right_knee",
-        15: "left_ankle",
-        16: "right_ankle"
-    },
-	"skeleton": [
-        [16,14],[14,12],[17,15],[15,13],[12,13],[6,12],[7,13], [6,7],[6,8],
-        [7,9],[8,10],[9,11],[2,3],[1,2],[1,3],[2,4],[3,5],[4,6],[5,7]]
-    '''
+
     def __init__(self, cfg, root, image_set, is_train, transform=None):
         super().__init__(cfg, root, image_set, is_train, transform)
         self.nms_thre = cfg.TEST.NMS_THRE
@@ -64,9 +41,10 @@ class COCODataset(JointsDataset):
         self.image_height = cfg.MODEL.IMAGE_SIZE[1]
         self.aspect_ratio = self.image_width * 1.0 / self.image_height
         self.pixel_std = 200
-        self.img_prefix = 'frame'
+        self.img_extension = cfg.DATASET.DATA_FORMAT
+        self.img_prefix = cfg.DATASET.IMG_PREFIX #for 'image_0.png'
 
-        #For Testing one can selectively take images for testing (useful for heatmap generation especially wiwth Volab, where drive-colab links are shitty)
+#For Testing one can selectively take images for testing (useful for heatmap generation especially wiwth Volab, where drive-colab links are shitty)
         self.resume_id = None
         self.stop_id = None
         self.make_selection = True if self.resume_id and self.stop_id else False
@@ -93,16 +71,15 @@ class COCODataset(JointsDataset):
         self.num_images = len(self.image_set_index)
         logger.info('=> num_images: {}'.format(self.num_images))
 
-        self.num_joints = 16
-        self.flip_pairs = [[0, 1], [2, 3], [4, 5], [6, 7],
-                           [8, 9],[10,11],[12,13],[14,15]]
+        self.num_joints = 12
+        self.flip_pairs = []
         self.parent_ids = None
         self.upper_body_ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-        self.lower_body_ids = (12,13,14,15)
+        self.lower_body_ids = ()
 
         self.joints_weight = np.array(
             [
-                1., 1., 1., 1., 1., 1., 1., 1.,1., 1., 1., 1., 1., 1., 1., 1.
+                1., 1., 1., 1., 1., 1., 1., 1.,1., 1., 1., 1.
             ],
             dtype=np.float32
         ).reshape((self.num_joints, 1))
@@ -239,7 +216,7 @@ class COCODataset(JointsDataset):
         return center, scale
 
     def image_path_from_index(self, index):
-        """ example: images / train2017 / 000000119993.jpg """
+        """ train/0-999/image_0.png """
         #For Envisat with 1000 images per folder
         n_subfolder = 1000
         idx_range = (int(np.floor(index/n_subfolder))*n_subfolder,int(np.ceil(index/n_subfolder))*n_subfolder)
@@ -249,7 +226,7 @@ class COCODataset(JointsDataset):
             idx_range = (idx_range[0],(idx_range[1]-1))
 
         subfolder = f"{idx_range[0]}-{idx_range[1]}"
-        file_name = self.img_prefix + format(index)+'.jpg'
+        file_name = self.img_prefix+ format(index)+'.'+self.img_extension
         prefix = self.image_set
 
         image_path = os.path.join(
@@ -284,6 +261,7 @@ class COCODataset(JointsDataset):
             num_boxes = num_boxes + 1
 
             center, scale = self._box2cs(box)
+            print (f"Center:{center}, Scale: {scale}, Box: {box}")
             joints_3d = np.zeros((self.num_joints, 3), dtype=np.float)
             joints_3d_vis = np.ones(
                 (self.num_joints, 3), dtype=np.float)
@@ -320,6 +298,7 @@ class COCODataset(JointsDataset):
         _kpts = []
         #get img_id
 
+        print(f"Preds: len: {len(preds)}, Shape: {preds[0]}")
 
         for idx, kpt in enumerate(preds):
             _kpts.append({
@@ -330,6 +309,9 @@ class COCODataset(JointsDataset):
                 'score': all_boxes[idx][5],
                 'image': int((img_path[idx][:-4].split('/')[-1]).split(self.img_prefix)[-1])
             })
+
+        print(f"Keypoints: Length: {len(_kpts)}, Kpts: {_kpts[0]}")
+
         # image x person x (keypoints)
         kpts = defaultdict(list)
         for kpt in _kpts:
@@ -371,6 +353,8 @@ class COCODataset(JointsDataset):
                 oks_nmsed_kpts.append(img_kpts)
             else:
                 oks_nmsed_kpts.append([img_kpts[_keep] for _keep in keep])
+
+        print(f"OKS KPS : Length: {len(oks_nmsed_kpts)}, Shape: {oks_nmsed_kpts[0]}")
 
         self._write_coco_keypoint_results(
             oks_nmsed_kpts, res_file)

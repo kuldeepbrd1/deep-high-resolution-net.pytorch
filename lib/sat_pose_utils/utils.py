@@ -22,7 +22,7 @@ def save_all_heatmaps(batch_image, batch_heatmaps, output_dir, meta, normalize=T
     '''
     heatmaps_dir = os.path.join(output_dir,'heatmaps')
     if not os.path.exists(heatmaps_dir):
-        os.mkdir(heatmaps_dir)
+        os.makedirs(heatmaps_dir, exist_ok=True)
     if normalize:
         batch_image = batch_image.clone()
         min = float(batch_image.min())
@@ -52,16 +52,18 @@ def save_all_heatmaps(batch_image, batch_heatmaps, output_dir, meta, normalize=T
 
         height_begin = heatmap_height * i
         height_end = heatmap_height * (i + 1)
+        img_name = ((meta['image'][i]).split("/")[-1]).split(".")[0]
+        print(img_name)
         for j in range(num_joints):
-            img_name = ((meta['image'][0]).split("/")[-1]).split(".")[0]
+
             img_dir = os.path.join(heatmaps_dir,img_name)
             if not os.path.exists(img_dir):
                 os.mkdir(img_dir)
             heatmap_filepath = os.path.join(img_dir,(img_name + '_heatmap_'+ str(j)+".jpg"))
-            
+
             heatmap = heatmaps[j, :, :]
-            colored_heatmap = heatmap #cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-            
+            colored_heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
             cv2.imwrite(heatmap_filepath, colored_heatmap)
             #grid_image[height_begin:height_end, width_begin:width_end, :] = \
             #    masked_image
@@ -74,9 +76,10 @@ def save_all_heatmaps(batch_image, batch_heatmaps, output_dir, meta, normalize=T
 def save_all_val_heatmaps(config, input, meta, target, joints_pred, output, output_dir):
     if not config.DEBUG.DEBUG:
         return
-    set_dir = os.path.join(output_dir,'val')
-    if not os.path.exists(set_dir):
-        os.mkdir(set_dir)
+    set_dir = os.path.join(output_dir,config.DATASET.TEST_SET)
     if config.DEBUG.SAVE_HEATMAPS_TEST_ALL:
-        save_all_heatmaps(input, target, set_dir, meta)
-    
+        if not os.path.exists(set_dir):
+            os.mkdir(set_dir)
+        save_all_heatmaps(input, output, set_dir, meta)
+
+

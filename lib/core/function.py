@@ -7,7 +7,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
- 
+
 import time
 import logging
 import os
@@ -44,7 +44,6 @@ def train(config, train_loader, model, criterion, optimizer, epoch,
 
         # compute output
         outputs = model(input)
-
         target = target.cuda(non_blocking=True)
         target_weight = target_weight.cuda(non_blocking=True)
 
@@ -167,7 +166,7 @@ def validate(config, val_loader, val_dataset, model, criterion, output_dir,
             c = meta['center'].numpy()
             s = meta['scale'].numpy()
             score = meta['score'].numpy()
-
+            #print(f"idx: {i}")
             preds, maxvals = get_final_preds(
                 config, output.clone().cpu().numpy(), c, s)
 
@@ -183,7 +182,7 @@ def validate(config, val_loader, val_dataset, model, criterion, output_dir,
             idx += num_images
             # ----------------Save all heatmaps from test/val : 28/02 -----
             save_all_val_heatmaps(config, input, meta, target, pred*4, output,output_dir)
-            
+
             if i % config.PRINT_FREQ == 0:
                 msg = 'Test: [{0}/{1}]\t' \
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
@@ -194,7 +193,7 @@ def validate(config, val_loader, val_dataset, model, criterion, output_dir,
                 logger.info(msg)
 
                 prefix = '{}_{}'.format(
-                    os.path.join(output_dir, 'val'), i
+                    os.path.join(output_dir, config.DATASET.TEST_SET), i
                 )
                 save_debug_images(config, input, meta, target, pred*4, output,
                                   prefix)
